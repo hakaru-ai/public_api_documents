@@ -1,0 +1,2450 @@
+openapi: 3.0.0
+info:
+  title: hakaru.ai 公開 API
+  version: 1.0.0
+  contact:
+    name: hakaru.ai by GMO
+    url: 'https://www.hakaru.ai/'
+  x-logo:
+    url: /assets/images/logo_hakaru-ai_defalt.png
+    altText: hakaru.ai logo
+  description: "こちらは [hakaru.ai](https://www.hakaru.ai/) 公開 API ドキュメントです。\n\n# Introduction\n[hakaru.ai（ハカルエーアイ）](https://www.hakaru.ai/)は様々なメーターの撮影画像をAIによって解析し\b、数値を読み取り、自動で台帳記録を完了するメーター点検業務を効率化するためのサービスです。\n  \nhakaru.ai 公開 API は RESTful API であり、OAuth2 認証、メーター画像の解析および台帳記録の取得などの機能を提供します。\n\nAPI のご利用開始手順や制限事項は、[こちら](https://github.com/hakaru-ai/public_api_documents)をご確認ください。\n"
+  termsOfService: 'https://www.hakaru.ai/pdf/agreement/hakaru-ai_agreement.pdf'
+  license:
+    name: MIT
+    url: 'https://github.com/hakaru-ai/public_api_documents/blob/master/LICENSE'
+externalDocs:
+  description: 関連ドキュメントおよびサンプルコードはGitHubのリポジトリを参照してください。
+  url: 'https://github.com/hakaru-ai/public_api_documents'
+servers:
+  - url: 'https://public-api.hakaru.ai'
+    description: Endpoint
+paths:
+  /v2/oauth2/access_token:
+    post:
+      summary: Get access token
+      operationId: post-v2-oauth2-access_token
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  例1:
+                    access_token: '{アクセストークン}'
+                    token_type: Bearer
+                    expires_in: 3600
+                    refresh_token: '{リフレッシュトークン}'
+                    scope: read write
+                properties:
+                  access_token:
+                    type: string
+                    minLength: 1
+                    description: アクセストークン
+                  token_type:
+                    type: string
+                    minLength: 1
+                    description: トークン種別
+                    example: Bearer
+                  expires_in:
+                    type: number
+                    description: アクセストークン有効期間（秒）
+                    minimum: 0
+                    maximum: 3600
+                    example: 3600
+                    readOnly: true
+                  refresh_token:
+                    type: string
+                    minLength: 1
+                    description: リフレッシュトークン
+                    readOnly: true
+                  scope:
+                    type: string
+                    minLength: 1
+                    description: アカウントのアクセス権
+                    example: read write
+                    readOnly: true
+                required:
+                  - access_token
+                  - token_type
+                  - expires_in
+                  - refresh_token
+                  - scope
+              examples:
+                例1 成功:
+                  value:
+                    access_token: eyJraWQiOiIxa1lTbTBTQW...
+                    token_type: Bearer
+                    expires_in: 3600
+                    refresh_token: eyJjdHkiOiJKV1QiLCJlbmMiOiJ...
+                    scope: read write
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  例1:
+                    result:
+                      error_code: UAC0001-01
+                      msg: incorrect username or password
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: UAC0001-01
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        description: エラーメッセージ
+                        example: incorrect username or password
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                    description: 空オブジェクト
+                required:
+                  - result
+              examples:
+                例1 不正な認証情報:
+                  value:
+                    result:
+                      error_code: UAC0001-01
+                      msg: incorrect username or password
+      description: |-
+        ## アクセストークン取得API
+        メールアドレスまたはログインIDとパスワードからアクセストークンおよびリフレッシュトークンを取得する。
+
+        ### トークン有効期限
+        - アクセストークン: `3,600 秒（1 時間）`
+        - リフレッシュトークン: `2,678,400 秒（31 日間）`
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                例1:
+                  username: '{hakaru.ai のアカウントID}'
+                  password: '{ログイン パスワード}'
+              properties:
+                username:
+                  type: string
+                  minLength: 1
+                  description: hakaru.ai のログインID
+                  example: user01@example.com
+                  readOnly: true
+                password:
+                  type: string
+                  description: ログイン パスワード
+                  format: password
+                  minLength: 8
+                  maxLength: 32
+                  example: _Password123_
+                  readOnly: true
+              required:
+                - username
+                - password
+            examples:
+              例1:
+                value:
+                  username: user01@example.com
+                  password: _Password123_
+        description: アカウント認証情報をセットする
+      tags:
+        - auth_api
+      security:
+        - hakaru_user_auth:
+            - read
+            - write
+  /v2/oauth2/refresh_token:
+    post:
+      summary: Refresh token
+      operationId: post-v2-oauth2-refresh_token
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  例1:
+                    access_token: '{アクセストークン}'
+                    token_type: Bearer
+                    expires_in: 3600
+                    scope: read write
+                properties:
+                  access_token:
+                    type: string
+                    minLength: 1
+                    description: アクセストークン
+                    example: eyJraWQiOiIxa1lTbTBTQW...
+                    readOnly: true
+                  token_type:
+                    type: string
+                    minLength: 1
+                    description: トークン種別
+                    example: Bearer
+                    readOnly: true
+                  expires_in:
+                    type: number
+                    description: アクセストークン有効期間（秒）
+                    minimum: 0
+                    maximum: 3600
+                    example: 3600
+                    readOnly: true
+                  scope:
+                    type: string
+                    minLength: 1
+                    description: アカウントのアクセス権
+                    example: read write
+                    readOnly: true
+                required:
+                  - access_token
+                  - token_type
+                  - expires_in
+                  - scope
+              examples:
+                例1 成功:
+                  value:
+                    access_token: eyJraWQiOiIxa1lTbTBTQW...
+                    token_type: Bearer
+                    expires_in: 3600
+                    scope: read write
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  例1:
+                    result:
+                      error_code: UAC0001-07
+                      msg: refresh_token is incorrect
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: UAC0001-07
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: refresh_token is incorrect
+                        description: エラーメッセージ
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                    description: 空オブジェクト
+                    readOnly: true
+                required:
+                  - result
+              examples:
+                例1 失敗/リフレッシュトークン失効・不正なトークン:
+                  value:
+                    result:
+                      error_code: UAC0001-07
+                      msg: refresh_token is incorrect
+                    api_res: {}
+      description: |-
+        ## リフレッシュトークン認証 API
+        アクセストークンが失効した場合、リフレッシュトークンを利用してアクセストークンを再取得する。
+
+        リフレッシュトークンの有効期間は 31 日間であり、失効した場合はアクセストークン取得 API によるパスワード認証から手順をやり直す必要がある。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                例1:
+                  refresh_token: '{リフレッシュトークン}'
+              properties:
+                refresh_token:
+                  type: string
+                  minLength: 1
+                  description: リフレッシュトークン
+                  example: eyJjdHkiOiJKV1QiLCJlbmMiOiJ...
+                  readOnly: true
+              required:
+                - refresh_token
+            examples:
+              例1:
+                value:
+                  refresh_token: eyJjdHkiOiJKV1QiLCJlbmMiOiJ...
+        description: リフレッシュトークンをセットする。
+      tags:
+        - auth_api
+  /v2/oauth2/verify_token:
+    get:
+      summary: Verify access token
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  例1:
+                    ok: true
+                    login_id: '{hakaru.ai のログインID}'
+                    expire: '{アクセストークン有効期限}'
+                    auth_res: {}
+                properties:
+                  ok:
+                    type: boolean
+                    default: true
+                    description: true 固定
+                  login_id:
+                    type: string
+                    minLength: 13
+                    description: hakaru.ai のログインID
+                    example: HKR1234567890
+                    maxLength: 13
+                    readOnly: true
+                  expire:
+                    type: string
+                    format: date-time
+                    example: '2020-05-19T09:01:06.000+09:00'
+                    minLength: 29
+                    maxLength: 29
+                    description: アクセストークン有効期限
+                    readOnly: true
+                  auth_res:
+                    type: object
+                    description: 空オブジェクト
+                    properties:
+                      '':
+                        type: string
+                    readOnly: true
+                required:
+                  - ok
+                  - login_id
+                  - expire
+                  - auth_res
+              examples:
+                例1 成功:
+                  value:
+                    ok: true
+                    login_id: HKR1234567890
+                    expire: '2021-07-19T09:01:06.000+09:00'
+                    auth_res: {}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  例1:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        example: UAC0002
+                        description: エラーコード
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: access_token has expired
+                        description: エラーメッセージ
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                    description: 空オブジェクト
+                    readOnly: true
+                required:
+                  - result
+              examples:
+                例1 失敗/アクセストークン失効:
+                  value:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: UAC0001-05
+                      msg: access_token is incorrect
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        example: UAC0001-05
+                        description: エラーコード
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: access_token is incorrect
+                        description: エラーメッセージ
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                    description: 空オブジェクト
+                    readOnly: true
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/不正なアクセストークン:
+                  value:
+                    result:
+                      error_code: UAC0001-05
+                      msg: access_token is incorrect
+                    api_res: {}
+                例2 失敗/公開 API 利用不可ユーザー:
+                  value:
+                    result:
+                      error_code: UAC0003
+                      msg: API is not available
+                    api_res: {}
+      operationId: get-v2-oauth2-verify_token
+      description: |-
+        ## アクセストークン検証 API
+        アクセストークンの有効性をチェックする。
+      parameters: []
+      security:
+        - hakaru_bearer_auth: []
+      tags:
+        - auth_api
+  /v1/resources/images:
+    post:
+      summary: Post an image to be analyzed with QR code
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Hakaru-Request-Id:
+              schema:
+                type: string
+                example: device001-000289
+                minLength: 0
+                maxLength: 128
+                pattern: '^[a-zA-Z0-9_\-@\+\.]{0,128}$'
+              description: リクエストヘッダの X-Hakaru-Request-Id にセットされた文字列
+            X-Hakaru-Request-Upper-Limit-Monthly:
+              schema:
+                type: number
+                minimum: 0
+                maximum: 300000
+                example: 300000
+              description: 契約別 1 ヶ月あたりの点検 API リクエスト回数上限値
+            X-Hakaru-Request-Upper-Limit-Daily:
+              schema:
+                type: number
+                example: 10000
+                minimum: 0
+                maximum: 10000
+              description: 契約別 1 日あたりの点検 API リクエスト回数上限値
+            X-Hakaru-Request-Total-Monthly:
+              schema:
+                type: number
+                example: 1781
+                minimum: 0
+                maximum: 300000
+              description: 契約別当月点検 API リクエスト回数
+            X-Hakaru-Request-Total-Daily:
+              schema:
+                type: number
+                example: 156
+                minimum: 0
+                maximum: 10000
+              description: 契約別当日点検 API リクエスト回数
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  例1:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: '{リソース ID}'
+                        measured_code: OK
+                        value: '1000'
+                        measured_at: '2019-10-04T09:22:43.917Z'
+                properties:
+                  result:
+                    type: object
+                    description: レスポンスの結果オブジェクト
+                    required:
+                      - error_code
+                      - msg
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        example: OK
+                        description: エラーコード
+                        default: OK
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 0
+                        description: エラーメッセージ
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                    description: レスポンスデータ
+                    required:
+                      - resource
+                    properties:
+                      resource:
+                        type: object
+                        description: リソースデータ
+                        required:
+                          - id
+                          - value
+                          - measured_code
+                          - measured_at
+                        properties:
+                          id:
+                            type: string
+                            description: hakaru.ai システムにおけるリソースのID
+                            example: 61162e249bfd75093f4d82c9
+                            pattern: '^[a-z0-9]{24}$'
+                            minLength: 24
+                            maxLength: 24
+                          value:
+                            type: string
+                            description: 対象メーターの解析値
+                            example: '170.03'
+                            minLength: 0
+                            readOnly: true
+                          measured_code:
+                            type: string
+                            minLength: 1
+                            description: 解析コード
+                            example: OK
+                            default: OK
+                            readOnly: true
+                          measured_at:
+                            type: string
+                            minLength: 1
+                            description: 点検日時（ISO 8601 形式）
+                            example: '2019-10-04T09:22:43.917Z'
+                            format: date-time
+                            readOnly: true
+                        readOnly: true
+                    readOnly: true
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 成功:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: 61162e249bfd75093f4d82c9
+                        measured_code: OK
+                        value: '170.03'
+                        measured_at: '2019-10-04T09:22:43.917Z'
+                例2 解析失敗:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: 61162e249bfd75093f4d82c9
+                        measured_code: MEA0001
+                        value: ''
+                        measured_at: '2019-10-04T09:22:43.917Z'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: ANA0001
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        description: エラーメッセージ
+                        example: Not found QR
+                    readOnly: true
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/アクセストークン失効:
+                  value:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: PUB0003
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: Your request count has reached the max limit.
+                        description: エラーメッセージ
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/リクエスト回数（または間隔）制限エラー:
+                  value:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+      operationId: post-v1-resources-images
+      security:
+        - hakaru_bearer_auth: []
+      description: |-
+        ## 点検 API（QRコードあり）
+        hakaru.ai で発行したQRコードの値を使用し、メーター解析結果を取得する。
+      parameters:
+        - schema:
+            type: string
+            minLength: 0
+            maxLength: 128
+            example: device001-000289
+            pattern: '^[_\-@\+\.0-9a-zA-z]*$'
+          in: header
+          name: X-Hakaru-Request-Id
+          description: ユーザーがリクエストを一意に特定するための任意の文字列. 半角英数大小文字および _-@+. の記号を利用でき、0 文字（空文字列）から最大 128 文字まで指定可能. セットされた文字列はレスポンスヘッダの X-Hakaru-Request-Id パラメーターにそのまま返される
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                例1:
+                  qr: '{QRコードの値}'
+                  image: /9j/4AAQSkZJRgABAQAAAQABAA...
+                  measured_at: '1570184702416'
+              properties:
+                qr:
+                  type: string
+                  minLength: 1
+                  description: 対象メーターのQRコードの値
+                  example: hkr0123_Abcde
+                  pattern: '^hkr[a-zA-Z0-9_\-]+$'
+                  readOnly: true
+                image:
+                  type: string
+                  minLength: 1
+                  description: 画像をBase64エンコードしたmimeタイプを含まない値
+                  example: /9j/4AAQSkZJRgABAQAAAQABAA...
+                  format: binary
+                  readOnly: true
+                measured_at:
+                  type: string
+                  description: 撮影時のタイムスタンプ（ミリ秒を含む 13 桁の数値）このプロパティが追加されていない場合は、サーバー上の現在日時が画像のタイムスタンプとしてセットされる
+                  example: '1570184702416'
+                  maxLength: 13
+                  minLength: 0
+                  readOnly: true
+              required:
+                - qr
+                - image
+            examples:
+              例1:
+                value:
+                  qr: hkr0123_abcde
+                  image: /9j/4AAQSkZJRgABAQAAAQABAA...
+                  measured_at: '1570184702416'
+        description: Base64 エンコードした画像データおよび点検メーターの QR コードをセットする。
+      tags:
+        - inspect_api
+  '/v1/resources/images/meter_type/{meter_type}':
+    post:
+      summary: Post an image to be analyzed with meter type
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: '{リソース ID}'
+                        measured_code: OK
+                        value: '1000'
+                        measured_at: '2019-10-04T09:22:43.917Z'
+                properties:
+                  result:
+                    type: object
+                    description: レスポンスの結果オブジェクト
+                    required:
+                      - error_code
+                      - msg
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: OK
+                        default: OK
+                      msg:
+                        type: string
+                        description: エラーメッセージ
+                        minLength: 0
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                    description: レスポンスデータ
+                    required:
+                      - resource
+                    properties:
+                      resource:
+                        type: object
+                        description: リソースデータ
+                        required:
+                          - id
+                          - value
+                          - measured_code
+                          - measured_at
+                        properties:
+                          id:
+                            type: string
+                            description: hakaru.ai システムにおけるリソースのID
+                            example: 61162e249bfd75093f4d82c9
+                            pattern: '^[a-z0-9]{24}$'
+                            minLength: 24
+                            maxLength: 24
+                          value:
+                            type: string
+                            description: 対象メーターの解析値
+                            example: '170.03'
+                            minLength: 0
+                            readOnly: true
+                          measured_code:
+                            type: string
+                            minLength: 1
+                            description: 解析コード
+                            example: OK
+                            default: OK
+                            readOnly: true
+                          measured_at:
+                            type: string
+                            minLength: 1
+                            description: 点検日時（ISO 8601 形式）
+                            example: '2019-10-04T09:22:43.917Z'
+                            format: date-time
+                            readOnly: true
+                        readOnly: true
+                    readOnly: true
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 成功:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: 61162e249bfd75093f4d82c9
+                        measured_code: OK
+                        value: '1098.9'
+                        measured_at: '2019-10-04T09:22:43.917Z'
+                例2 解析失敗:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: 61162e249bfd75093f4d82c9
+                        measured_code: MEA0001
+                        value: ''
+                        measured_at: '2019-10-04T09:22:43.917Z'
+          headers:
+            X-Hakaru-Request-Id:
+              schema:
+                type: string
+                example: device001-000289
+                minLength: 0
+                maxLength: 128
+                pattern: '^[a-zA-Z0-9_\-@\+\.]{0,128}$'
+              description: リクエストヘッダの X-Hakaru-Request-Id にセットされた文字列
+            X-Hakaru-Request-Upper-Limit-Monthly:
+              schema:
+                type: number
+                minimum: 0
+                maximum: 300000
+                example: 300000
+              description: 契約別 1 ヶ月あたりの点検 API リクエスト回数上限値
+            X-Hakaru-Request-Upper-Limit-Daily:
+              schema:
+                type: number
+                example: 10000
+                minimum: 0
+                maximum: 10000
+              description: 契約別 1 日あたりの点検 API リクエスト回数上限値
+            X-Hakaru-Request-Total-Monthly:
+              schema:
+                type: number
+                example: 1781
+                minimum: 0
+                maximum: 300000
+              description: 契約別当月点検 API リクエスト回数
+            X-Hakaru-Request-Total-Daily:
+              schema:
+                type: number
+                example: 156
+                minimum: 0
+                maximum: 10000
+              description: 契約別当日点検 API リクエスト回数
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: ANA0001
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        description: エラーメッセージ
+                        example: Not found QR
+                    readOnly: true
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/不正なQRコード:
+                  value:
+                    result:
+                      error_code: ANA0001
+                      msg: Not found QR
+                    api_res: {}
+                例2 失敗/アクセストークン失効:
+                  value:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: PUB0003
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: Your request count has reached the max limit.
+                        description: エラーメッセージ
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/リクエスト回数（または間隔）制限エラー:
+                  value:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+      operationId: post-v1-resources-images-meter_type-meter_type
+      description: |-
+        ## 点検 API（QRコード不要、メータータイプ指定）
+        任意のメータータイプ指定し、点検メーターの解析結果を取得する。
+
+        + [メータータイプ一覧](https://github.com/hakaru-ai/public_api_documents#メータータイプ)
+      security:
+        - hakaru_bearer_auth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                example-1:
+                  image: /9j/4AAQSkZJRgABAQAAAQABAA...
+                  measured_at: '1570184702416'
+              properties:
+                image:
+                  type: string
+                  minLength: 1
+                  example: /9j/4AAQSkZJRgABAQAAAQABAA..
+                  format: binary
+                  description: 画像をBase64エンコードしたmimeタイプを含まない値
+                  readOnly: true
+                measured_at:
+                  type: string
+                  minLength: 13
+                  maxLength: 13
+                  example: '1570184702416'
+                  description: 撮影時のタイムスタンプ（ミリ秒を含む 13 桁の数値）このプロパティが追加されていない場合は、サーバー上の現在日時が画像のタイムスタンプとしてセットされる
+                  readOnly: true
+              required:
+                - image
+            examples:
+              例1:
+                value:
+                  image: /9j/4AAQSkZJRgABAQAAAQABAA...
+                  measured_at: '1570184702416'
+        description: Base64 エンコードした画像データをセットする。
+      tags:
+        - inspect_api
+      parameters:
+        - schema:
+            type: string
+            example: MET0003
+            minLength: 1
+            pattern: '^MET[0-9]{4}$'
+          in: path
+          name: meter_type
+          description: メータータイプ
+          required: true
+        - schema:
+            type: string
+            minLength: 0
+            maxLength: 128
+            example: device001-000289
+            pattern: '^[_\-@\+\.0-9a-zA-z]*$'
+          in: header
+          name: X-Hakaru-Request-Id
+          description: ユーザーがリクエストを一意に特定するための任意の文字列. 半角英数大小文字および _-@+. の記号を利用でき、0 文字（空文字列）から最大 128 文字まで指定可能. セットされた文字列はレスポンスヘッダの X-Hakaru-Request-Id パラメーターにそのまま返される
+    parameters:
+      - schema:
+          type: string
+        name: meter_type
+        in: path
+        required: true
+  /v1/sheets/count:
+    get:
+      summary: Get the number of web ledgers
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      count: 82
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: OK
+                        default: OK
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 0
+                        description: エラーメッセージ
+                        readOnly: true
+                  api_res:
+                    type: object
+                    required:
+                      - count
+                    description: レスポンスデータ
+                    properties:
+                      count:
+                        type: number
+                        description: ヒットしたWeb台帳数
+                        minimum: 0
+                        example: 82
+                        readOnly: true
+                    readOnly: true
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 成功:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      count: 82
+          headers:
+            X-Hakaru-Request-Id:
+              schema:
+                type: string
+                example: device001-000289
+                minLength: 0
+                maxLength: 128
+                pattern: '^[a-zA-Z0-9_\-@\+\.]{0,128}$'
+              description: リクエストヘッダの X-Hakaru-Request-Id にセットされた文字列
+            X-Hakaru-Request-Upper-Limit-Monthly:
+              schema:
+                type: number
+                minimum: 0
+                maximum: 300000
+                example: 300000
+              description: 契約別 1 ヶ月あたりの台帳 API リクエスト回数上限値
+            X-Hakaru-Request-Upper-Limit-Daily:
+              schema:
+                type: number
+                example: 10000
+                minimum: 0
+                maximum: 10000
+              description: 契約別 1 日あたりの台帳 API リクエスト回数上限値
+            X-Hakaru-Request-Total-Monthly:
+              schema:
+                type: number
+                example: 5089
+                minimum: 0
+                maximum: 300000
+              description: 契約別当月台帳 API リクエスト回数
+            X-Hakaru-Request-Total-Daily:
+              schema:
+                type: number
+                example: 723
+                minimum: 0
+                maximum: 10000
+              description: 契約別当日台帳 API リクエスト回数
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0001
+                      msg: name is too long
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                      msg:
+                        type: string
+                        minLength: 1
+                  api_res:
+                    type: object
+                required:
+                  - result
+              examples:
+                例1 失敗/name に指定された文字列が長過ぎる:
+                  value:
+                    result:
+                      error_code: PUB0001
+                      msg: name is too long
+                    api_res: {}
+                例2 失敗/アクセストークン失効:
+                  value:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: PUB0003
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: Your request count has reached the max limit.
+                        description: エラーメッセージ
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/リクエスト回数（または間隔）制限エラー:
+                  value:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+      operationId: get-v1-sheets-count
+      description: |-
+        ## Web台帳数取得API
+        指定されたキーワードに一致するWeb台帳数を取得する。
+        検索範囲は API 呼び出し元ユーザーの契約に紐付いた台帳に限定される。
+      parameters:
+        - schema:
+            type: string
+            minLength: 0
+            maxLength: 256
+            example: テスト台帳A
+          in: query
+          name: name
+          description: 台帳名から Web台帳を検索する場合のキーワード. 指定されない場合は契約に紐づく全ての台帳数を返す. 最大 256 文字まで指定可能
+          allowEmptyValue: true
+        - schema:
+            type: string
+            minLength: 0
+            maxLength: 128
+            example: device001-000289
+            pattern: '^[_\-@\+\.0-9a-zA-z]*$'
+          in: header
+          name: X-Hakaru-Request-Id
+          description: ユーザーがリクエストを一意に特定するための任意の文字列. 半角英数大小文字および _-@+. の記号を利用でき、0 文字（空文字列）から最大 128 文字まで指定可能. セットされた文字列はレスポンスヘッダの X-Hakaru-Request-Id パラメーターにそのまま返される
+      security:
+        - hakaru_bearer_auth: []
+      tags:
+        - sheet_api
+  /v1/sheets:
+    parameters:
+      - schema:
+          type: string
+          minLength: 0
+          maxLength: 256
+          example: テスト台帳A
+        in: query
+        name: name
+        description: 台帳名から Web台帳を検索する場合のキーワード. 指定されない場合は契約に紐づく全ての台帳数を返す. 最大 256 文字まで指定可能
+        allowEmptyValue: true
+      - schema:
+          type: number
+          minimum: 1
+          maximum: 1000
+          default: 100
+          example: 500
+        in: query
+        description: 取得するWeb台帳の最大件数
+        name: limit
+        allowEmptyValue: true
+      - schema:
+          type: number
+          minimum: 0
+        in: query
+        name: offset
+        description: Web台帳配列の開始インデックス. 0 以上の値を指定する
+        allowEmptyValue: true
+      - schema:
+          type: string
+          default: asc
+          example: desc
+        in: query
+        name: order
+        description: 'Web台帳の作成日時での並び替え順. 昇順: asc, 降順: desc'
+        allowEmptyValue: true
+      - schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+          example: device001-000289
+          pattern: '^[_\-@\+\.0-9a-zA-z]*$'
+        in: header
+        name: X-Hakaru-Request-Id
+        description: ユーザーがリクエストを一意に特定するための任意の文字列. 半角英数大小文字および _-@+. の記号を利用でき、0 文字（空文字列）から最大 128 文字まで指定可能. セットされた文字列はレスポンスヘッダの X-Hakaru-Request-Id パラメーターにそのまま返される
+    get:
+      summary: Get a list of web ledgers
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      count: 5
+                      a_sheet:
+                        - id: 5ce29336fcf0fb4423a4e838
+                          name: 水道計A-005
+                          type: SHEET_PER_MONTH
+                          created_at: '2019-05-20T20:44:54.486+09:00'
+                          count: 82
+                          a_row:
+                            - id: 5d088b6e581149509d25eae1
+                              'no': '1'
+                              name: meter01
+                              qr: hkrTtdKYUAX0
+                              type: MET0003
+                              created_at: '2019-07-03T19:08:57.381+09:00'
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: OK
+                        default: OK
+                        readOnly: true
+                      msg:
+                        type: string
+                        description: エラーメッセージ
+                        minLength: 0
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                    required:
+                      - count
+                      - a_sheet
+                    description: レスポンスデータ
+                    properties:
+                      count:
+                        type: number
+                        minimum: 0
+                        example: 5
+                        description: ヒットしたWeb台帳数（a_sheet 配列の長さ）
+                        readOnly: true
+                      a_sheet:
+                        type: array
+                        uniqueItems: true
+                        minItems: 1
+                        description: Web台帳リスト
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Web台帳ID
+                              example: 5ce29336fcf0fb4423a4e838
+                              minLength: 24
+                              maxLength: 24
+                              pattern: '^[a-z0-9]{24}$'
+                              readOnly: true
+                            name:
+                              type: string
+                              minLength: 1
+                              description: Web台帳名
+                              example: 水道計A-005
+                              readOnly: true
+                            type:
+                              type: string
+                              minLength: 1
+                              example: SHEET_PER_MONTH
+                              description: Web台帳タイプ
+                              readOnly: true
+                            created_at:
+                              type: string
+                              minLength: 1
+                              format: date-time
+                              example: '2019-05-20T20:44:54.486+09:00'
+                              description: Web台帳作成日時（ISO 8601 形式）
+                              readOnly: true
+                            count:
+                              type: number
+                              minimum: 0
+                              example: 1
+                              description: 対象のWeb台帳に登録済み点検メーター数（a_row 配列の長さ）
+                              readOnly: true
+                            a_row:
+                              type: array
+                              uniqueItems: true
+                              minItems: 1
+                              description: 対象のWeb台帳に登録済み点検メーターリスト
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    description: 点検メーターID
+                                    example: 5d088b6e581149509d25eae1
+                                    minLength: 24
+                                    maxLength: 24
+                                    pattern: '^[a-z0-9]{24}$'
+                                    readOnly: true
+                                  'no':
+                                    type: string
+                                    minLength: 1
+                                    description: 点検メーターNo.
+                                    example: '1'
+                                    readOnly: true
+                                  name:
+                                    type: string
+                                    minLength: 1
+                                    description: '点検メーター名 '
+                                    example: meter01
+                                    readOnly: true
+                                  qr:
+                                    type: string
+                                    description: QRコード
+                                    example: hkrTtdKYUAX0
+                                    minLength: 1
+                                    readOnly: true
+                                  type:
+                                    type: string
+                                    minLength: 1
+                                    description: 点検メーターのタイプ
+                                    example: MET0003
+                                    readOnly: true
+                                  created_at:
+                                    type: string
+                                    minLength: 1
+                                    description: ' 点検メーター作成日時（ISO 8601 形式）'
+                                    format: date-time
+                                    example: '2019-07-03T19:08:57.381+09:00'
+                                    readOnly: true
+                          readOnly: true
+                        readOnly: true
+                    readOnly: true
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 成功:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      count: 1
+                      a_sheet:
+                        - id: 5ce29336fcf0fb4423a4e838
+                          name: 水道計A-005
+                          type: SHEET_PER_MONTH
+                          created_at: '2019-05-20T20:44:54.486+09:00'
+                          count: 1
+                          a_row:
+                            - id: 5d088b6e581149509d25eae1
+                              'no': '1'
+                              name: meter01
+                              qr: hkrTtdKYUAX0
+                              type: MET0003
+                              created_at: '2019-07-03T19:08:57.381+09:00'
+          headers:
+            X-Hakaru-Request-Id:
+              schema:
+                type: string
+                example: device001-000289
+                minLength: 0
+                maxLength: 128
+                pattern: '^[a-zA-Z0-9_\-@\+\.]{0,128}$'
+              description: リクエストヘッダの X-Hakaru-Request-Id にセットされた文字列
+            X-Hakaru-Request-Upper-Limit-Monthly:
+              schema:
+                type: number
+                minimum: 0
+                maximum: 300000
+                example: 300000
+              description: 契約別 1 ヶ月あたりの台帳 API リクエスト回数上限値
+            X-Hakaru-Request-Upper-Limit-Daily:
+              schema:
+                type: number
+                example: 10000
+                minimum: 0
+                maximum: 10000
+              description: 契約別 1 日あたりの台帳 API リクエスト回数上限値
+            X-Hakaru-Request-Total-Monthly:
+              schema:
+                type: number
+                example: 5089
+                minimum: 0
+                maximum: 300000
+              description: 契約別当月台帳 API リクエスト回数
+            X-Hakaru-Request-Total-Daily:
+              schema:
+                type: number
+                example: 723
+                minimum: 0
+                maximum: 10000
+              description: 契約別当日台帳 API リクエスト回数
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0001
+                      msg: name is too long
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: PUB0001
+                        readOnly: true
+                      msg:
+                        type: string
+                        description: エラーメッセージ
+                        minLength: 0
+                        example: name is too long
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                    description: レスポンスデータ
+                required:
+                  - result
+              examples:
+                例1 失敗/name に指定された文字列が長過ぎる:
+                  value:
+                    result:
+                      error_code: PUB0001
+                      msg: name is too long
+                    api_res: {}
+                例2 失敗/不正なlimit値:
+                  value:
+                    result:
+                      error_code: PUB0001
+                      msg: Invalid limit value
+                    api_res: {}
+                例3 失敗/不正なoffset値:
+                  value:
+                    result:
+                      error_code: PUB0001
+                      msg: Invalid offset value
+                    api_res: {}
+                例4 失敗/不正なorder値:
+                  value:
+                    result:
+                      error_code: PUB0001
+                      msg: Invalid order value
+                    api_res: {}
+                例5 失敗/アクセストークン失効:
+                  value:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+          headers: {}
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: PUB0003
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: Your request count has reached the max limit.
+                        description: エラーメッセージ
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/リクエスト回数（または間隔）制限エラー:
+                  value:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+      operationId: get-v1-sheets
+      description: |-
+        ## Web台帳一覧取得API
+        指定されたキーワードに一致するWeb台帳一覧を取得する。
+        検索範囲は API 呼び出し元ユーザーの契約に紐付いた台帳に限定される。
+      tags:
+        - sheet_api
+      security:
+        - hakaru_bearer_auth: []
+      parameters: []
+  '/v1/sheet/{sheet_id}':
+    parameters:
+      - schema:
+          type: string
+        name: sheet_id
+        in: path
+        required: true
+      - schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+          example: device001-000289
+          pattern: '^[_\-@\+\.0-9a-zA-z]*$'
+        in: header
+        name: X-Hakaru-Request-Id
+        description: ユーザーがリクエストを一意に特定するための任意の文字列. 半角英数大小文字および _-@+. の記号を利用でき、0 文字（空文字列）から最大 128 文字まで指定可能. セットされた文字列はレスポンスヘッダの X-Hakaru-Request-Id パラメーターにそのまま返される
+    get:
+      summary: Get the web ledger information
+      tags:
+        - sheet_api
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      sheet:
+                        id: 5f8fd94903989228919a1ed6
+                        name: 電気メーターX-012
+                        type: SHEET_PER_HOURS
+                        created_at: '2021-01-15T09:29:06.321+09:00'
+                        count: 20
+                        a_row:
+                          - id: 60211c1a32cf30059c180d61
+                            'no': '1'
+                            name: meter01
+                            qr: hkryFyTfU8ob
+                            type: MET0002
+                            created_at: '2021-02-08T20:10:18.295+09:00'
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: OK
+                        default: OK
+                        readOnly: true
+                      msg:
+                        type: string
+                        description: エラーメッセージ
+                        minLength: 0
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                    required:
+                      - sheet
+                    description: レスポンスデータ
+                    properties:
+                      sheet:
+                        type: object
+                        required:
+                          - id
+                          - name
+                          - type
+                          - created_at
+                          - count
+                          - a_row
+                        description: Web台帳データ
+                        properties:
+                          id:
+                            type: string
+                            description: Web台帳ID
+                            example: 5f8fd94903989228919a1ed6
+                            minLength: 24
+                            maxLength: 24
+                            pattern: '^[a-z0-9]{24}$'
+                            readOnly: true
+                          name:
+                            type: string
+                            minLength: 1
+                            description: Web台帳名
+                            example: 電気メーターX-012
+                            readOnly: true
+                          type:
+                            type: string
+                            minLength: 1
+                            example: SHEET_PER_HOURS
+                            description: Web台帳タイプ
+                            readOnly: true
+                          created_at:
+                            type: string
+                            minLength: 1
+                            format: date-time
+                            example: '2021-01-15T09:29:06.321+09:00'
+                            description: Web台帳作成日時（ISO 8601 形式）
+                            readOnly: true
+                          count:
+                            type: number
+                            minimum: 0
+                            example: 1
+                            description: 対象のWeb台帳に登録済み点検メーター数（a_row 配列の長さ）
+                            readOnly: true
+                          a_row:
+                            type: array
+                            uniqueItems: true
+                            minItems: 1
+                            description: 対象のWeb台帳に登録済み点検メーターリスト
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  description: 点検メーターID
+                                  example: 60211c1a32cf30059c180d61
+                                  minLength: 24
+                                  maxLength: 24
+                                  pattern: '^[a-z0-9]{24}$'
+                                  readOnly: true
+                                'no':
+                                  type: string
+                                  minLength: 1
+                                  description: 点検メーターNo.
+                                  example: '1'
+                                  readOnly: true
+                                name:
+                                  type: string
+                                  minLength: 1
+                                  description: '点検メーター名 '
+                                  example: meter01
+                                  readOnly: true
+                                qr:
+                                  type: string
+                                  description: QRコード
+                                  example: hkryFyTfU8ob
+                                  minLength: 1
+                                  readOnly: true
+                                type:
+                                  type: string
+                                  minLength: 1
+                                  description: 点検メーターのタイプ
+                                  example: MET0002
+                                  readOnly: true
+                                created_at:
+                                  type: string
+                                  minLength: 1
+                                  description: ' 点検メーター作成日時（ISO 8601 形式）'
+                                  format: date-time
+                                  example: '2021-02-08T20:10:18.295+09:00'
+                                  readOnly: true
+                        readOnly: true
+                    readOnly: true
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 成功:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      sheet:
+                        id: 5f8fd94903989228919a1ed6
+                        name: 電気メーターX-012
+                        type: SHEET_PER_HOURS
+                        created_at: '2021-01-15T09:29:06.321+09:00'
+                        count: 1
+                        a_row:
+                          - id: 60211c1a32cf30059c180d61
+                            'no': '1'
+                            name: meter01
+                            qr: hkryFyTfU8ob
+                            type: MET0002
+                            created_at: '2021-02-08T20:10:18.295+09:00'
+          headers:
+            X-Hakaru-Request-Id:
+              schema:
+                type: string
+                example: device001-000289
+                minLength: 0
+                maxLength: 128
+                pattern: '^[a-zA-Z0-9_\-@\+\.]{0,128}$'
+              description: リクエストヘッダの X-Hakaru-Request-Id にセットされた文字列
+            X-Hakaru-Request-Upper-Limit-Monthly:
+              schema:
+                type: number
+                minimum: 0
+                maximum: 300000
+                example: 300000
+              description: 契約別 1 ヶ月あたりの台帳 API リクエスト回数上限値
+            X-Hakaru-Request-Upper-Limit-Daily:
+              schema:
+                type: number
+                example: 10000
+                minimum: 0
+                maximum: 10000
+              description: 契約別 1 日あたりの台帳 API リクエスト回数上限値
+            X-Hakaru-Request-Total-Monthly:
+              schema:
+                type: number
+                example: 5089
+                minimum: 0
+                maximum: 300000
+              description: 契約別当月台帳 API リクエスト回数
+            X-Hakaru-Request-Total-Daily:
+              schema:
+                type: number
+                example: 723
+                minimum: 0
+                maximum: 10000
+              description: 契約別当日台帳 API リクエスト回数
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0001
+                      msg: Invalid sheet_id
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                      msg:
+                        type: string
+                        minLength: 1
+                  api_res:
+                    type: object
+                required:
+                  - result
+              examples:
+                例1 失敗/不正なsheet_id:
+                  value:
+                    result:
+                      error_code: PUB0001
+                      msg: Invalid sheet_id
+                    api_res: {}
+                例2 失敗/アクセストークン失効:
+                  value:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: PUB0003
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: Your request count has reached the max limit.
+                        description: エラーメッセージ
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/リクエスト回数（または間隔）制限エラー:
+                  value:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+      operationId: get-v1-sheet-sheet_id
+      description: |-
+        ## Web台帳情報取得API
+        指定された台帳IDのWeb台帳情報を取得する。
+      security:
+        - hakaru_bearer_auth: []
+  '/v1/row/{row_id}/{from}/{to}':
+    parameters:
+      - schema:
+          type: string
+        name: row_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: from
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: to
+        in: path
+        required: true
+    get:
+      summary: Get the inspection data list
+      tags:
+        - sheet_api
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      row:
+                        id: 5d2c849c81e7fd110bd01fce
+                        'no': '7'
+                        name: meter007
+                        qr: hkrupDtWIhR2
+                        type: MET0001
+                        template_name: はかりB01
+                        unit: g
+                        decimal_digit: '1'
+                        multiplier: '1'
+                        outlier_check_type: 'LTE (threshold:800)'
+                        expiry_at: '2023-06-30T23:59:59.000+09:00'
+                        person_in_charge: 山田一郎
+                        note: 調整済み
+                        created_at: '2021-02-08T22:53:36.747+09:00'
+                        count: 15
+                        a_inspection:
+                          - column_name: '202010010000'
+                            measured_at: '2020-10-01T08:27:06.865+09:00'
+                            value: '540'
+                            comment: ''
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: OK
+                        default: OK
+                        readOnly: true
+                      msg:
+                        type: string
+                        description: エラーメッセージ
+                        minLength: 0
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                    required:
+                      - row
+                    description: レスポンスデータ
+                    properties:
+                      row:
+                        type: object
+                        description: 点検メーターオブジェクト
+                        properties:
+                          id:
+                            type: string
+                            description: 点検メーターID
+                            pattern: '^[a-z0-9]{24}$'
+                            minLength: 24
+                            maxLength: 24
+                            example: 5d2c849c81e7fd110bd01fce
+                            readOnly: true
+                          'no':
+                            type: string
+                            minLength: 1
+                            description: 点検メーターNo.
+                            example: '7'
+                            readOnly: true
+                          name:
+                            type: string
+                            minLength: 1
+                            description: 点検メーター名
+                            example: meter007
+                            readOnly: true
+                          qr:
+                            type: string
+                            minLength: 1
+                            description: QRコード
+                            example: hkrupDtWIhR2
+                          type:
+                            type: string
+                            minLength: 1
+                            description: 点検メーターのタイプ
+                            example: MET0001
+                            readOnly: true
+                          template_name:
+                            type: string
+                            description: メーターテンプレート名. アナログメーターのみ. その他タイプの点検メーターの場合は空文字
+                            minLength: 0
+                            example: はかりB01
+                            readOnly: true
+                          unit:
+                            type: string
+                            description: 点検値の単位
+                            minLength: 0
+                            example: g
+                            readOnly: true
+                          decimal_digit:
+                            type: string
+                            description: 点検値の小数点以下桁数
+                            example: '1'
+                            minLength: 0
+                            readOnly: true
+                          multiplier:
+                            type: string
+                            minLength: 0
+                            example: '1'
+                            description: 点検値の乗率
+                            readOnly: true
+                          outlier_check_type:
+                            type: string
+                            description: '異常値通知設定. 異常値通知を有効にしていない場合は空文字 '
+                            minLength: 0
+                            example: 'LTE (threshold:800)'
+                            readOnly: true
+                          expiry_at:
+                            type: string
+                            minLength: 1
+                            description: メーター有効期限（ISO 8601 形式）
+                            example: '2023-06-30T23:59:59.000+09:00'
+                            format: date-time
+                            readOnly: true
+                          person_in_charge:
+                            type: string
+                            description: 担当者
+                            example: 山田一郎
+                            minLength: 0
+                          note:
+                            type: string
+                            description: 備考
+                            minLength: 0
+                            example: 調整済み
+                            readOnly: true
+                          created_at:
+                            type: string
+                            minLength: 1
+                            description: 点検メーター作成日時（ISO 8601 形式）
+                            format: date-time
+                            example: '2021-02-08T22:53:36.747+09:00'
+                            readOnly: true
+                          count:
+                            type: number
+                            description: 点検データ数（a_inspection 配列の長さ）
+                            minimum: 0
+                            example: 1
+                            readOnly: true
+                          a_inspection:
+                            type: array
+                            uniqueItems: true
+                            minItems: 1
+                            description: 点検データ配列
+                            items:
+                              type: object
+                              properties:
+                                column_name:
+                                  type: string
+                                  description: '点検値一覧の列名. 日に１回以上の点検メーターの場合: YYYYMMDDHHmm 形式. 月１台帳の場合: YYYYMM 形式'
+                                  example: '202010010000'
+                                  minLength: 6
+                                  maxLength: 12
+                                  readOnly: true
+                                measured_at:
+                                  type: string
+                                  minLength: 1
+                                  description: 点検日時（ISO 8601 形式）
+                                  format: date-time
+                                  example: '2020-10-01T08:27:06.865+09:00'
+                                  readOnly: true
+                                value:
+                                  type: string
+                                  minLength: 1
+                                  example: '540'
+                                  description: 点検値
+                                  readOnly: true
+                                comment:
+                                  type: string
+                                  description: 点検メモ
+                                  example: 本日2回目の点検値
+                                  minLength: 0
+                                  readOnly: true
+                        readOnly: true
+                    readOnly: true
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 成功:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      row:
+                        id: 5d2c849c81e7fd110bd01fce
+                        'no': '7'
+                        name: meter007
+                        qr: hkrupDtWIhR2
+                        type: MET0001
+                        template_name: はかりB01
+                        unit: g
+                        decimal_digit: '1'
+                        multiplier: '1'
+                        outlier_check_type: 'LTE (threshold:800)'
+                        expiry_at: '2023-06-30T23:59:59.000+09:00'
+                        person_in_charge: 山田一郎
+                        note: 調整済み
+                        created_at: '2021-02-08T22:53:36.747+09:00'
+                        count: 1
+                        a_inspection:
+                          - column_name: '202010010000'
+                            measured_at: '2020-10-01T08:27:06.865+09:00'
+                            value: '540'
+                            comment: 本日2回目の点検
+          headers:
+            X-Hakaru-Request-Id:
+              schema:
+                type: string
+                example: device001-000289
+                minLength: 0
+                maxLength: 128
+                pattern: '^[a-zA-Z0-9_\-@\+\.]{0,128}$'
+              description: リクエストヘッダの X-Hakaru-Request-Id にセットされた文字列
+            X-Hakaru-Request-Upper-Limit-Monthly:
+              schema:
+                type: number
+                minimum: 0
+                maximum: 300000
+                example: 300000
+              description: 契約別 1 ヶ月あたりの台帳 API リクエスト回数上限値
+            X-Hakaru-Request-Upper-Limit-Daily:
+              schema:
+                type: number
+                example: 10000
+                minimum: 0
+                maximum: 10000
+              description: 契約別 1 日あたりの台帳 API リクエスト回数上限値
+            X-Hakaru-Request-Total-Monthly:
+              schema:
+                type: number
+                example: 5089
+                minimum: 0
+                maximum: 300000
+              description: 契約別当月台帳 API リクエスト回数
+            X-Hakaru-Request-Total-Daily:
+              schema:
+                type: number
+                example: 723
+                minimum: 0
+                maximum: 10000
+              description: 契約別当日台帳 API リクエスト回数
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0001
+                      msg: Invalid row_id
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: PUB0001
+                        readOnly: true
+                      msg:
+                        type: string
+                        description: エラーメッセージ
+                        minLength: 0
+                        example: Invalid row_id
+                        readOnly: true
+                  api_res:
+                    type: object
+                    description: ''
+                required:
+                  - result
+              examples:
+                例1 失敗/不正なrow_id:
+                  value:
+                    result:
+                      error_code: PUB0001
+                      msg: Invalid row_id
+                    api_res: {}
+                例2 失敗/指定期間が長過ぎる:
+                  value:
+                    result:
+                      error_code: PUB0001
+                      msg: The period specified is too long
+                    api_res: {}
+                例3 失敗/不正な形式の 'from':
+                  value:
+                    result:
+                      error_code: PUB0001
+                      msg: Invalid 'from' format
+                    api_res: {}
+                例4 失敗/不正な形式の 'to':
+                  value:
+                    result:
+                      error_code: PUB0001
+                      msg: Invalid 'to' format
+                    api_res: {}
+                例5 失敗/'to' に 'from' より過去の日が指定されている:
+                  value:
+                    result:
+                      error_code: PUB0001
+                      msg: '''to'' is specified with a date older than ''from'''
+                    api_res: {}
+                例7 失敗/アクセストークン失効:
+                  value:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: PUB0003
+                        readOnly: true
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: Your request count has reached the max limit.
+                        description: エラーメッセージ
+                        readOnly: true
+                    readOnly: true
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/リクエスト回数（または間隔）制限エラー:
+                  value:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+      operationId: get-v1-row-row_id-from-to
+      description: |-
+        ## 点検データ取得API
+        任意の点検メーターについて、リクエストパラメーターで指定された期間の点検データを取得する。
+      parameters:
+        - schema:
+            type: string
+            minLength: 0
+            maxLength: 128
+            example: device001-000289
+            pattern: '^[_\-@\+\.0-9a-zA-z]*$'
+          in: header
+          name: X-Hakaru-Request-Id
+          description: ユーザーがリクエストを一意に特定するための任意の文字列. 半角英数大小文字および _-@+. の記号を利用でき、0 文字（空文字列）から最大 128 文字まで指定可能. セットされた文字列はレスポンスヘッダの X-Hakaru-Request-Id パラメーターにそのまま返される
+      security:
+        - hakaru_bearer_auth: []
+components:
+  schemas: {}
+  securitySchemes:
+    hakaru_user_auth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /v2/oauth2/access_token
+          tokenUrl: ''
+          refreshUrl: /v2/oauth2/refresh_token
+          scopes:
+            read: ユーザーリソース読み取り
+            write: ユーザーリソース追加・更新
+      description: ログインID とパスワードによりユーザーを認証し、トークンを発行する
+    hakaru_bearer_auth:
+      type: http
+      scheme: bearer
+      description: 'リクエストヘッダ Authorization Bearer {access_token} のトークンで認証を行う'
+security:
+  - bearerAuth: []

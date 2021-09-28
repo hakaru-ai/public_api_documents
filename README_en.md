@@ -1,6 +1,6 @@
 [![Release Version][release-shield]][release-url]
 [![Stargazers][stars-shield]][stars-url]
-[![MIT License][license-shield]](LICENSE)
+[![License: MIT][license-shield]][license-url]
 
 
 <!-- PROJECT LOGO -->
@@ -177,7 +177,7 @@ Calls to the Inspection API and Ledger API are restricted as follows, respective
   |:--------|:--------|
   | Request transmission interval | `0.5 sec.` |
   | Number of requests per day | Up to `10,000 times` |
-  | Number of requests per month | Up to `300,000 times` (up to `50 times` for API trial users) |
+  | Number of requests per month | Up to `300,000 times` |
 
 #### Request transmission interval
 
@@ -367,6 +367,7 @@ Supported languages are [go](sample_codes/go), [java](sample_codes/java), [node.
 [stars-shield]: https://img.shields.io/github/stars/hakaru-ai/public_api_documents?color=yellow&style=for-the-badge
 [stars-url]: https://github.com/hakaru-ai/public_api_documents/stargazers
 [license-shield]: https://img.shields.io/github/license/hakaru-ai/public_api_documents?color=green&style=for-the-badge
+[license-url]: https://github.com/hakaru-ai/public_api_documents/blob/master/LICENSE
 [service-site-url]: https://www.hakaru.ai/
 [application-form-url]: https://hakaru.ai/account/register/pre
 [contact-form-url]: https://form.gmogshd.com/iot/hakaru-ai/contact/

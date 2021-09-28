@@ -1,6 +1,6 @@
 [![Release Version][release-shield]][release-url]
 [![Stargazers][stars-shield]][stars-url]
-[![MIT License][license-shield]](LICENSE)
+[![License: MIT][license-shield]][license-url]
 
 
 <!-- PROJECT LOGO -->
@@ -175,7 +175,7 @@ OAuth2 認証認可 API の呼び出しは次のように制限されます。
   |:--------|:--------|
   | リクエスト送信間隔 | `0.5 秒` |
   | 1 日あたりのリクエスト数 | 最大 `10,000 回` |
-  | 1 カ月あたりのリクエスト数 | 最大 `300,000 回` （API トライアルユーザーは最大 `50 回`）|
+  | 1 カ月あたりのリクエスト数 | 最大 `300,000 回` |
 
 #### リクエスト送信間隔
 
@@ -369,6 +369,7 @@ hakaru.ai システムに登録済みの Web 台帳、点検メーター情報�
 [stars-shield]: https://img.shields.io/github/stars/hakaru-ai/public_api_documents?color=yellow&style=for-the-badge
 [stars-url]: https://github.com/hakaru-ai/public_api_documents/stargazers
 [license-shield]: https://img.shields.io/github/license/hakaru-ai/public_api_documents?color=green&style=for-the-badge
+[license-url]: https://github.com/hakaru-ai/public_api_documents/blob/master/LICENSE
 [service-site-url]: https://www.hakaru.ai/
 [application-form-url]: https://hakaru.ai/account/register/pre
 [contact-form-url]: https://form.gmogshd.com/iot/hakaru-ai/contact/

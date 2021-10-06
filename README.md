@@ -1,6 +1,5 @@
 [![Release Version][release-shield]][release-url]
 [![Stargazers][stars-shield]][stars-url]
-[![License: MIT][license-shield]][license-url]
 
 
 <!-- PROJECT LOGO -->

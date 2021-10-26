@@ -49,6 +49,7 @@
         <li><a href="#ledger-type">Ledger type</a></li>
         <li><a href="#analysis-code">Analysis code</a></li>
         <li><a href="#abnormal-value-notification-setting-type">Abnormal value notification setting type</a></li>
+        <li><a href="#type-of-handling-of-first-digit-in-rotating-meters">Type of handling of first digit in Rotating meters</a></li>
       </ul>
     </li>
     <li><a href="#list-of-error-codes">List of Error Codes</a>
@@ -293,6 +294,14 @@ Returns the web ledger, inspection meter information, and inspection values alre
 | LTE (threshold:{Lower limit}) | Below threshold level |
 | EQ (normal value:{Normal level}) | All but normal level |
 | BETWEEN (lower threshold:{Lower limit},upper threshold:{pper limit}) | Out of threshold range |
+
+## Type of handling of first digit in Rotating meters
+
+| Type   | Rounding |
+|------------|----------|
+| ROUND_UP   | Rounding up |
+| ROUND_DOWN | Rounding down |
+| ROUND_OFF  | Rounding off |
 
 ## List of Error Codes
 

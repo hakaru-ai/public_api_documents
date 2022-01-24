@@ -32,7 +32,7 @@ const measuredAt = now.getTime();
             const body = {
                 qr: qrCode,
                 image: imageBase64,
-                measured_at: measuredAt
+                measured_at: measuredAt.toString()
             };
 
             const response = await axios.post(url, body, options);

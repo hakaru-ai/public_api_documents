@@ -19,7 +19,7 @@ unix_msec = int(time.time() * 1000)
 
 body = {
     'image': image,
-    'measured_at': unix_msec
+    'measured_at': str(unix_msec)
 }
 headers = {
     'Content-Type': 'application/json; charset=UTF-8',

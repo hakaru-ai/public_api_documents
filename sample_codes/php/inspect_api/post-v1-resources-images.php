@@ -14,7 +14,7 @@ $measuredAt = ceil(microtime(TRUE) * 1000);
 $requestBody = json_encode(array(
         "qr" => $qrCode,
         "image" => $imageBase64,
-        "measured_at" => $measuredAt
+        "measured_at" => "$measuredAt"
     ));
 
 $ch = curl_init($url);

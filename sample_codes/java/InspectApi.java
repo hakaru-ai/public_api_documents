@@ -51,7 +51,7 @@ public class InspectApi {
         String url = endPoint + path;
         
         JSONObject jsonObj = new JSONObject();
-        jsonObj.put("measured_at", System.currentTimeMillis());
+        jsonObj.put("measured_at", String.valueOf(System.currentTimeMillis()));
         jsonObj.put("image", getBase64FromImage());
 
         String body = jsonObj.toString();
@@ -108,7 +108,7 @@ public class InspectApi {
         
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("qr", qrCode);
-        jsonObj.put("measured_at", System.currentTimeMillis());
+        jsonObj.put("measured_at", String.valueOf(System.currentTimeMillis()));
         jsonObj.put("image", getBase64FromImage());
 
         String body = jsonObj.toString();

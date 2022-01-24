@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -24,7 +25,7 @@ var imageFilePath = "./YOUR_IMAGE_FILE.jpg"
 type RequestBody struct {
 	QR         string `json:"qr"`
 	Image      string `json:"image"`
-	MeasuredAt int64  `json:"measured_at"`
+	MeasuredAt string `json:"measured_at"`
 }
 
 type ResponseBodyOK struct {
@@ -54,7 +55,7 @@ func main() {
 	requestBody := new(RequestBody)
 	requestBody.QR = qrCode
 	requestBody.Image = readImageFile(imageFilePath)
-	requestBody.MeasuredAt = unixMsec
+	requestBody.MeasuredAt = strconv.FormatInt(unixMsec, 10)
 	requestBodyJson, _ := json.Marshal(requestBody)
 
 	request, error := http.NewRequest("POST", url, bytes.NewBuffer(requestBodyJson))

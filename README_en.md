@@ -271,6 +271,8 @@ Returns the web ledger, inspection meter information, and inspection values alre
 | MET0005     | LCD digital meter | ✓ | ✓ | |
 | MET0006     | LED digital meter | ✓ | ✓ | |
 | MET0007     | Horizontal scale manometer β |  | ✓ | |
+| MET0008     | - Unimplemented - |  | | For the next release |
+| MET0009     | Digital (other than 7-segment) | ✓ |  | |
 
 ### Ledger type
 

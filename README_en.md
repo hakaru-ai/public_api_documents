@@ -259,20 +259,24 @@ Returns the web ledger, inspection meter information, and inspection values alre
 
 ## List of Codes and Types
 
-### Meter type
+### Meter type <a href="https://www.hakaru.ai/support/meter-type.html">> Illustration or View in figure</a>
 
 | Meter type | Name | Inspection API Support | Ledger API Support | Remarks |
 |:----------|:-----------|:-----------:|:-----------:|:-----------|
-| MET0000     | Digital meter |  | ✓ | Old model. Will be disused in the future. |
-| MET0001     | Analog meter |  | ✓ | |
-| MET0002     | Rotating meter | ✓ | ✓ | |
-| MET0003     | Water meter | ✓ | ✓ | |
-| MET0004     | Analog panel meter | ✓ | ✓ | |
-| MET0005     | LCD digital meter | ✓ | ✓ | |
-| MET0006     | LED digital meter | ✓ | ✓ | |
-| MET0007     | Horizontal scale manometer β |  | ✓ | |
-| MET0008     | - Unimplemented - |  | | For the next release |
-| MET0009     | Digital (other than 7-segment) | ✓ |  | |
+| Analog / Round | MET0001 | | ✓ | |
+| Analog / Rectangular (Voltage, Current) | MET0004 | ✓ | ✓ | |
+| Analog / Horizontal scale | MET0007 | | ✓ | |
+| Digital / 7-seg | MET0005 | ✓ | ✓ | |
+| Digital / Other than 7-seg | MET0009 | ✓ |  | |
+| Counter | MET0002 | ✓ | ✓ | |
+| Digital meter | MET0000 | | ✓ | ***Deprecated (to be discontinued)*** *1 |
+| Water meter       | MET0003 | ✓ | ✓ | ***Deprecated (to be discontinued)*** *1 <br> Recommended replacement to *MET0002* *2 |
+| LED digital meter | MET0006 | ✓ | ✓ | ***Deprecated (to be discontinued)*** *1 <br> Recommended replacement to *MET0005* *2 |
+| - Unimplemented - | MET0008 |  | | For the next release 
+
+* \*1 Models with "to be discontinued" in the Remarks column are older models that will be discontinued in the future. Please refrain from new use.
+* \*2 In July 2022, *MET0003* (Water meter) is integrated into *MET0002* (Rotating meter) and MET0005 (LCD digital meter) is integrated into MET0006 (digital/7-seg).
+
 
 ### Ledger type
 

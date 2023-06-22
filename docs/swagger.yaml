@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: hakaru.ai 公開 API
-  version: 1.0.1
+  version: 1.0.4
   contact:
     name: hakaru.ai by GMO
     url: 'https://www.hakaru.ai/'
@@ -989,6 +989,15 @@ paths:
                   maxLength: 13
                   example: '1570184702416'
                   description: 撮影時のタイムスタンプ（ミリ秒を含む 13 桁の数値）このプロパティが追加されていない場合は、サーバー上の現在日時が画像のタイムスタンプとしてセットされる
+                rotation_rounding:
+                  type: string
+                  example: ROUND_UP
+                  pattern: (ROUND_UP|ROUND_DOWN|ROUND_OFF)
+                  description: |-
+                    回転式メーターの場合、一桁目に対して任意の処理を指定することができる。  
+                    指定する値については[回転式メーターにおける一桁目の取り扱いタイプ](https://github.com/hakaru-ai/public_api_documents#回転式メーターにおける一桁目の取り扱いタイプ)を参照。  
+                    `rotation_rounding`プロパティがリクエストに含まれないとき、四捨五入（ROUND_OFF）される。  
+                    回転式ではないメータータイプの場合、セットされた値は無視される。
               required:
                 - image
             examples:
@@ -996,6 +1005,11 @@ paths:
                 value:
                   image: /9j/4AAQSkZJRgABAQAAAQABAA...
                   measured_at: '1570184702416'
+              例2(メータータイプが回転式):
+                value:
+                  image: /9j/4AAQSkZJRgABAQAAAQABAA..
+                  measured_at: '1570184702416'
+                  rotation_rounding: ROUND_UP
         description: Base64 エンコードした画像データをセットする。
       tags:
         - inspect_api
@@ -1310,6 +1324,7 @@ paths:
                               name: meter01
                               qr: hkrTtdKYUAX0
                               type: MET0003
+                              insp_type: METER
                               created_at: '2019-07-03T19:08:57.381+09:00'
                 properties:
                   result:
@@ -1412,6 +1427,11 @@ paths:
                                     minLength: 1
                                     description: 点検メーターのタイプ
                                     example: MET0003
+                                  insp_type:
+                                    type: string
+                                    minLength: 1
+                                    example: METER
+                                    description: 点検タイプ
                                   created_at:
                                     type: string
                                     minLength: 1
@@ -1441,6 +1461,7 @@ paths:
                               name: meter01
                               qr: hkrTtdKYUAX0
                               type: MET0003
+                              insp_type: METER
                               created_at: '2019-07-03T19:08:57.381+09:00'
           headers:
             X-Hakaru-Request-Id:
@@ -1604,9 +1625,14 @@ paths:
     parameters:
       - schema:
           type: string
+          example: 5f8fd94903989228919a1ed6
+          minLength: 24
+          maxLength: 24
+          pattern: '^[a-z0-9]{24}$'
         name: sheet_id
         in: path
         required: true
+        description: 台帳ID
       - schema:
           type: string
           minLength: 0
@@ -1646,14 +1672,15 @@ paths:
                             name: meter01
                             qr: hkryFyTfU8ob
                             type: MET0002
+                            insp_type: METER
                             created_at: '2021-02-08T20:10:18.295+09:00'
                 properties:
                   result:
                     type: object
+                    description: レスポンスの結果オブジェクト
                     required:
                       - error_code
                       - msg
-                    description: レスポンスの結果オブジェクト
                     properties:
                       error_code:
                         type: string
@@ -1667,12 +1694,13 @@ paths:
                         minLength: 0
                   api_res:
                     type: object
+                    description: レスポンスデータ
                     required:
                       - sheet
-                    description: レスポンスデータ
                     properties:
                       sheet:
                         type: object
+                        description: Web台帳データ
                         required:
                           - id
                           - name
@@ -1680,7 +1708,6 @@ paths:
                           - created_at
                           - count
                           - a_row
-                        description: Web台帳データ
                         properties:
                           id:
                             type: string
@@ -1745,6 +1772,11 @@ paths:
                                   minLength: 1
                                   description: 点検メーターのタイプ
                                   example: MET0002
+                                insp_type:
+                                  type: string
+                                  example: METER
+                                  minLength: 1
+                                  description: 点検タイプ
                                 created_at:
                                   type: string
                                   minLength: 1
@@ -1773,6 +1805,7 @@ paths:
                             name: meter01
                             qr: hkryFyTfU8ob
                             type: MET0002
+                            insp_type: METER
                             created_at: '2021-02-08T20:10:18.295+09:00'
           headers:
             X-Hakaru-Request-Id:
@@ -1910,19 +1943,34 @@ paths:
     parameters:
       - schema:
           type: string
+          example: 5d2c849c81e7fd110bd01fce
+          minLength: 24
+          maxLength: 24
+          pattern: '^[a-z0-9]{24}$'
         name: row_id
         in: path
         required: true
+        description: 点検メーターID
       - schema:
           type: string
+          example: '20220801'
+          maxLength: 8
+          pattern: '^2[0-9]{3}[0-1][0-9][0-3][0-9]$'
+          minLength: 8
         name: from
         in: path
         required: true
+        description: 点検データ検索期間開始日
       - schema:
           type: string
+          example: '20220831'
+          pattern: '^2[0-9]{3}[0-1][0-9][0-3][0-9]$'
+          maxLength: 8
+          minLength: 8
         name: to
         in: path
         required: true
+        description: 点検データ検索期間終了日
     get:
       summary: Get the inspection data list
       tags:
@@ -1965,10 +2013,10 @@ paths:
                 properties:
                   result:
                     type: object
+                    description: レスポンスの結果オブジェクト
                     required:
                       - error_code
                       - msg
-                    description: レスポンスの結果オブジェクト
                     properties:
                       error_code:
                         type: string
@@ -1982,9 +2030,9 @@ paths:
                         minLength: 0
                   api_res:
                     type: object
+                    description: レスポンスデータ
                     required:
                       - row
-                    description: レスポンスデータ
                     properties:
                       row:
                         type: object
@@ -2017,6 +2065,11 @@ paths:
                             minLength: 1
                             description: 点検メーターのタイプ
                             example: MET0001
+                          insp_type:
+                            type: string
+                            example: METER
+                            description: 点検タイプ
+                            minLength: 1
                           template_name:
                             type: string
                             description: メーターテンプレート名. アナログメーターのみ. その他タイプの点検メーターの場合は空文字
@@ -2093,7 +2146,9 @@ paths:
                                   type: string
                                   minLength: 1
                                   example: '540'
-                                  description: 点検値
+                                  description: |-
+                                    row.insp_typeがMETERの場合メーター点検値、
+                                    SELECTの場合選択されたボタン名となる。
                                 comment:
                                   type: string
                                   description: 点検メモ
@@ -2115,6 +2170,7 @@ paths:
                         name: meter007
                         qr: hkrupDtWIhR2
                         type: MET0001
+                        insp_type: METER
                         template_name: はかりB01
                         unit: g
                         decimal_digit: '1'

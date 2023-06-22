@@ -309,6 +309,13 @@ Returns the web ledger, inspection meter information, and inspection values alre
 | ROUND_DOWN | Rounding down |
 | ROUND_OFF  | Rounding off |
 
+## 点検タイプ
+
+| Type   | Contents |
+|------------|----------|
+| METER   | Meter inspection |
+| SELECT | Equipment inspection |
+
 ## List of Error Codes
 
 ### Common response errors

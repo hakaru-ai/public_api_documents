@@ -261,18 +261,19 @@ Returns the web ledger, inspection meter information, and inspection values alre
 
 ### Meter type <a href="https://www.hakaru.ai/support/meter-type.html">> Illustration or View in figure</a>
 
-| Meter type | Name | Inspection API Support | Ledger API Support | Remarks |
-|:----------|:-----------|:-----------:|:-----------:|:-----------|
-| Analog / Round | MET0001 | | ✓ | |
-| Analog / Rectangular (Voltage, Current) | MET0004 | ✓ | ✓ | |
-| Analog / Horizontal scale | MET0007 | | ✓ | |
-| Digital / 7-seg | MET0005 | ✓ | ✓ | |
-| Digital / Other than 7-seg | MET0009 | ✓ |  | |
-| Counter | MET0002 | ✓ | ✓ | |
-| Digital meter | MET0000 | | ✓ | ***Deprecated (to be discontinued)*** *1 |
-| Water meter       | MET0003 | ✓ | ✓ | ***Deprecated (to be discontinued)*** *1 <br> Recommended replacement to *MET0002* *2 |
-| LED digital meter | MET0006 | ✓ | ✓ | ***Deprecated (to be discontinued)*** *1 <br> Recommended replacement to *MET0005* *2 |
-| - Unimplemented - | MET0008 |  | | For the next release 
+| Name | Meter type | Inspection API: QR | Inspection API: Meter type | Ledger API | Remarks |
+|---|---|---|---|---|---|
+| Analog / Round | MET0010 | ✓ | ✓ | ✓ |  |
+| Analog / Round (Custom setting) | MET0001 | ✓ |  | ✓ |  |
+| Analog / Rectangular (Voltage, Current) | MET0004 | ✓ | ✓ | ✓ |  |
+| Analog / Horizontal scale | MET0007 | ✓ |  | ✓ |  |
+| Digital / 7-seg | MET0005 | ✓ | ✓ | ✓ |  |
+| Digital / Other than 7-seg | MET0009 | ✓ | ✓ | ✓ |  |
+| Counter | MET0002 | ✓ | ✓ | ✓ |  |
+| Digital meter | MET0000 |  |  | ✓ | ***Deprecated (to be discontinued)*** *1 |
+| Water meter | MET0003 |  | ✓ | ✓ | ***Deprecated (to be discontinued)*** *1   Recommended replacement to *MET0002* *2 |
+| LED digital meter | MET0006 |  | ✓ | ✓ | ***Deprecated (to be discontinued)*** *1   Recommended replacement to *MET0005* *2 |
+| - Unimplemented - | MET0008 |  |  |  | For the next release |
 
 * \*1 Models with "to be discontinued" in the Remarks column are older models that will be discontinued in the future. Please refrain from new use.
 * \*2 In July 2022, *MET0003* (Water meter) is integrated into *MET0002* (Rotating meter) and MET0005 (LCD digital meter) is integrated into MET0006 (digital/7-seg).
@@ -362,6 +363,7 @@ Returns the web ledger, inspection meter information, and inspection values alre
 | ANA0003     | The specified time is invalid |
 | ANA0004     | The meter type is incorrect |
 | ANA0005     | The server is suspended |
+| ANA0006     | There is a problem with the inspection item settings. Please edit from the web screen. |
 
 
 

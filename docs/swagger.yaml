@@ -6,7 +6,7 @@ info:
     name: hakaru.ai by GMO
     url: 'https://www.hakaru.ai/'
   x-logo:
-    url: /assets/images/logo_hakaru-ai_defalt.png
+    url: /assets/images/logo_hakaru-ai_default.png
     altText: hakaru.ai logo
   description: "こちらは [hakaru.ai](https://www.hakaru.ai/) 公開 API ドキュメントです。\n\n# Introduction\n[hakaru.ai（ハカルエーアイ）](https://www.hakaru.ai/)は様々なメーターの撮影画像をAIによって解析し\b、数値を読み取り、自動で台帳記録を完了するメーター点検業務を効率化するためのサービスです。\n  \nhakaru.ai 公開 API は RESTful API であり、OAuth2 認証、メーター画像の解析および台帳記録の取得などの機能を提供します。\n\nAPI のご利用開始手順や制限事項は、[こちら](https://github.com/hakaru-ai/public_api_documents)をご確認ください。\n"
   termsOfService: 'https://www.hakaru.ai/pdf/agreement/hakaru-ai_agreement.pdf'
@@ -440,7 +440,7 @@ paths:
         - auth_api
   /v1/resources/images:
     post:
-      summary: Post an image to be analyzed with QR code
+      summary: Post an image to be analyzed with QR code v1
       responses:
         '200':
           description: OK
@@ -726,7 +726,7 @@ paths:
         - inspect_api
   '/v1/resources/images/meter_type/{meter_type}':
     post:
-      summary: Post an image to be analyzed with meter type
+      summary: Post an image to be analyzed with meter type v1
       responses:
         '200':
           description: OK
@@ -1038,6 +1038,891 @@ paths:
         name: meter_type
         in: path
         required: true
+  /v1.1/resources/images:
+    post:
+      summary: '[推奨] Post an image to be analyzed with QR code v1.1'
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Hakaru-Request-Id:
+              schema:
+                type: string
+                example: device001-000289
+                minLength: 0
+                maxLength: 128
+                pattern: '^[a-zA-Z0-9_\-@\+\.]{0,128}$'
+              description: リクエストヘッダの X-Hakaru-Request-Id にセットされた文字列
+            X-Hakaru-Request-Upper-Limit-Monthly:
+              schema:
+                type: number
+                minimum: 0
+                maximum: 300000
+                example: 300000
+              description: 契約別 1 ヶ月あたりの点検 API リクエスト回数上限値
+            X-Hakaru-Request-Upper-Limit-Daily:
+              schema:
+                type: number
+                example: 10000
+                minimum: 0
+                maximum: 10000
+              description: 契約別 1 日あたりの点検 API リクエスト回数上限値
+            X-Hakaru-Request-Total-Monthly:
+              schema:
+                type: number
+                example: 1781
+                minimum: 0
+                maximum: 300000
+              description: 契約別当月点検 API リクエスト回数
+            X-Hakaru-Request-Total-Daily:
+              schema:
+                type: number
+                example: 156
+                minimum: 0
+                maximum: 10000
+              description: 契約別当日点検 API リクエスト回数
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: 662729242509f2fbd57c2178
+                        values:
+                          - '-30.19'
+                          - '-39.59'
+                          - '-1.02'
+                        measured_code: OK
+                        measured_at: '2024-04-23T03:21:05.164Z'
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                      msg:
+                        type: string
+                  api_res:
+                    type: object
+                    required:
+                      - resource
+                    properties:
+                      resource:
+                        type: object
+                        required:
+                          - id
+                          - values
+                          - measured_code
+                          - measured_at
+                        properties:
+                          id:
+                            type: string
+                            minLength: 1
+                          values:
+                            type: array
+                            minItems: 1
+                            maxItems: 3
+                            items:
+                              type: string
+                          measured_code:
+                            type: string
+                            minLength: 1
+                          measured_at:
+                            type: string
+                            minLength: 1
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 成功:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: 662729242509f2fbd57c2178
+                        values:
+                          - '-30.19'
+                          - '-39.59'
+                          - '-1.02'
+                        measured_code: OK
+                        measured_at: '2024-04-23T03:21:05.164Z'
+                例2 解析失敗:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: 662730482509f2fbd57c2190
+                        values:
+                          - ''
+                        measured_code: MEA0001
+                        measured_at: '2024-04-23T03:51:36.534Z'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: ANA0001
+                      msg:
+                        type: string
+                        minLength: 1
+                        description: エラーメッセージ
+                        example: Not found QR
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/アクセストークン失効:
+                  value:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: PUB0003
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: Your request count has reached the max limit.
+                        description: エラーメッセージ
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/リクエスト回数（または間隔）制限エラー:
+                  value:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+      operationId: post-v1.1-resources-images
+      security:
+        - hakaru_bearer_auth: []
+      description: |
+        ## 点検 API（QRコードあり）
+        hakaru.ai で発行したQRコードの値を使用し、メーター解析結果を取得する。
+
+        クエリーパラメーターを使用することで複数値取得、台帳非表示が可能です。
+      parameters:
+        - schema:
+            type: string
+            minLength: 0
+            maxLength: 128
+            example: device001-000289
+            pattern: '^[_\-@\+\.0-9a-zA-z]*$'
+          in: header
+          name: X-Hakaru-Request-Id
+          description: ユーザーがリクエストを一意に特定するための任意の文字列. 半角英数大小文字および _-@+. の記号を利用でき、0 文字（空文字列）から最大 128 文字まで指定可能. セットされた文字列はレスポンスヘッダの X-Hakaru-Request-Id パラメーターにそのまま返される
+        - schema:
+            type: string
+          in: query
+          name: displayed
+          description: Web台帳に表示するか 指定しない場合はtrue
+        - schema:
+            type: string
+          in: query
+          name: multi
+          description: 複数値を許容するか 指定しない場合はfalse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                例1:
+                  qr: '{QRコードの値}'
+                  image: /9j/4AAQSkZJRgABAQAAAQABAA...
+                  measured_at: '1570184702416'
+              properties:
+                qr:
+                  type: string
+                  minLength: 1
+                  description: 対象メーターのQRコードの値
+                  example: hkr0123_Abcde
+                  pattern: '^hkr[a-zA-Z0-9_\-]+$'
+                image:
+                  type: string
+                  minLength: 1
+                  description: 画像をBase64エンコードしたmimeタイプを含まない値
+                  example: /9j/4AAQSkZJRgABAQAAAQABAA...
+                  format: binary
+                measured_at:
+                  type: string
+                  description: 撮影時のタイムスタンプ（ミリ秒を含む 13 桁の数値）このプロパティが追加されていない場合は、サーバー上の現在日時が画像のタイムスタンプとしてセットされる
+                  example: '1570184702416'
+                  maxLength: 13
+                  minLength: 0
+              required:
+                - qr
+                - image
+            examples:
+              例1:
+                value:
+                  qr: hkr0123_abcde
+                  image: /9j/4AAQSkZJRgABAQAAAQABAA...
+                  measured_at: '1570184702416'
+        description: Base64 エンコードした画像データおよび点検メーターの QR コードをセットする。
+      tags:
+        - inspect_api
+    parameters: []
+  '/v1.1/resources/images/meter_type/{meter_type}':
+    post:
+      summary: '[推奨] Post an image to be analyzed with meter type v1.1'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: 662767882509f2fbd57c21c0
+                        values:
+                          - '0.09'
+                          - '-0.01'
+                          - '0.39'
+                        measured_code: OK
+                        measured_at: '2024-04-23T07:47:16.498Z'
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                      msg:
+                        type: string
+                  api_res:
+                    type: object
+                    required:
+                      - resource
+                    properties:
+                      resource:
+                        type: object
+                        required:
+                          - id
+                          - values
+                          - measured_code
+                          - measured_at
+                        properties:
+                          id:
+                            type: string
+                            minLength: 1
+                          values:
+                            type: array
+                            minItems: 1
+                            maxItems: 3
+                            items:
+                              type: string
+                          measured_code:
+                            type: string
+                            minLength: 1
+                          measured_at:
+                            type: string
+                            minLength: 1
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 成功:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: 662767882509f2fbd57c21c0
+                        values:
+                          - '0.09'
+                          - '-0.01'
+                          - '0.39'
+                        measured_code: OK
+                        measured_at: '2024-04-23T07:47:16.498Z'
+                例2 解析失敗:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: 662730d02509f2fbd57c219c
+                        values:
+                          - ''
+                        measured_code: MEA0001
+                        measured_at: '2024-04-23T03:53:48.643Z'
+          headers:
+            X-Hakaru-Request-Id:
+              schema:
+                type: string
+                example: device001-000289
+                minLength: 0
+                maxLength: 128
+                pattern: '^[a-zA-Z0-9_\-@\+\.]{0,128}$'
+              description: リクエストヘッダの X-Hakaru-Request-Id にセットされた文字列
+            X-Hakaru-Request-Upper-Limit-Monthly:
+              schema:
+                type: number
+                minimum: 0
+                maximum: 300000
+                example: 300000
+              description: 契約別 1 ヶ月あたりの点検 API リクエスト回数上限値
+            X-Hakaru-Request-Upper-Limit-Daily:
+              schema:
+                type: number
+                example: 10000
+                minimum: 0
+                maximum: 10000
+              description: 契約別 1 日あたりの点検 API リクエスト回数上限値
+            X-Hakaru-Request-Total-Monthly:
+              schema:
+                type: number
+                example: 1781
+                minimum: 0
+                maximum: 300000
+              description: 契約別当月点検 API リクエスト回数
+            X-Hakaru-Request-Total-Daily:
+              schema:
+                type: number
+                example: 156
+                minimum: 0
+                maximum: 10000
+              description: 契約別当日点検 API リクエスト回数
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: ANA0001
+                      msg:
+                        type: string
+                        minLength: 1
+                        description: エラーメッセージ
+                        example: Not found QR
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/不正なQRコード:
+                  value:
+                    result:
+                      error_code: ANA0001
+                      msg: Not found QR
+                    api_res: {}
+                例2 失敗/アクセストークン失効:
+                  value:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: PUB0003
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: Your request count has reached the max limit.
+                        description: エラーメッセージ
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/リクエスト回数（または間隔）制限エラー:
+                  value:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+      operationId: post-v1.1-resources-images-meter_type-meter_type
+      description: |-
+        ## 点検 API（QRコード不要、メータータイプ指定）
+        任意のメータータイプ指定し、点検メーターの解析結果を取得する。
+
+        + [メータータイプ一覧](https://github.com/hakaru-ai/public_api_documents#メータータイプ)
+
+        クエリーパラメーターを使用することで複数値取得、台帳非表示が可能です。
+      security:
+        - hakaru_bearer_auth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                example-1:
+                  image: /9j/4AAQSkZJRgABAQAAAQABAA...
+                  measured_at: '1570184702416'
+              properties:
+                image:
+                  type: string
+                  minLength: 1
+                  example: /9j/4AAQSkZJRgABAQAAAQABAA..
+                  format: binary
+                  description: 画像をBase64エンコードしたmimeタイプを含まない値
+                measured_at:
+                  type: string
+                  minLength: 13
+                  maxLength: 13
+                  example: '1570184702416'
+                  description: 撮影時のタイムスタンプ（ミリ秒を含む 13 桁の数値）このプロパティが追加されていない場合は、サーバー上の現在日時が画像のタイムスタンプとしてセットされる
+                rotation_rounding:
+                  type: string
+                  example: ROUND_UP
+                  pattern: (ROUND_UP|ROUND_DOWN|ROUND_OFF)
+                  description: |-
+                    回転式メーターの場合、一桁目に対して任意の処理を指定することができる。  
+                    指定する値については[回転式メーターにおける一桁目の取り扱いタイプ](https://github.com/hakaru-ai/public_api_documents#回転式メーターにおける一桁目の取り扱いタイプ)を参照。  
+                    `rotation_rounding`プロパティがリクエストに含まれないとき、四捨五入（ROUND_OFF）される。  
+                    回転式ではないメータータイプの場合、セットされた値は無視される。
+              required:
+                - image
+            examples:
+              例1:
+                value:
+                  image: /9j/4AAQSkZJRgABAQAAAQABAA...
+                  measured_at: '1570184702416'
+              例2(メータータイプが回転式):
+                value:
+                  image: /9j/4AAQSkZJRgABAQAAAQABAA..
+                  measured_at: '1570184702416'
+                  rotation_rounding: ROUND_UP
+        description: Base64 エンコードした画像データをセットする。
+      tags:
+        - inspect_api
+      parameters:
+        - schema:
+            type: string
+            example: MET0003
+            minLength: 1
+            pattern: '^MET[0-9]{4}$'
+          in: path
+          name: meter_type
+          description: メータータイプ
+          required: true
+        - schema:
+            type: string
+            minLength: 0
+            maxLength: 128
+            example: device001-000289
+            pattern: '^[_\-@\+\.0-9a-zA-z]*$'
+          in: header
+          name: X-Hakaru-Request-Id
+          description: ユーザーがリクエストを一意に特定するための任意の文字列. 半角英数大小文字および _-@+. の記号を利用でき、0 文字（空文字列）から最大 128 文字まで指定可能. セットされた文字列はレスポンスヘッダの X-Hakaru-Request-Id パラメーターにそのまま返される
+        - schema:
+            type: string
+          in: query
+          name: multi
+          description: 複数値を許容するか 指定しない場合はfalse
+    parameters:
+      - schema:
+          type: string
+        name: meter_type
+        in: path
+        required: true
+  /v1.1/resources/determine:
+    post:
+      summary: Determining inspection values
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Hakaru-Request-Id:
+              schema:
+                type: string
+                example: device001-000289
+                minLength: 0
+                maxLength: 128
+                pattern: '^[a-zA-Z0-9_\-@\+\.]{0,128}$'
+              description: リクエストヘッダの X-Hakaru-Request-Id にセットされた文字列
+            X-Hakaru-Request-Upper-Limit-Monthly:
+              schema:
+                type: number
+                minimum: 0
+                maximum: 300000
+                example: 300000
+              description: 契約別 1 ヶ月あたりの点検 API リクエスト回数上限値
+            X-Hakaru-Request-Upper-Limit-Daily:
+              schema:
+                type: number
+                example: 10000
+                minimum: 0
+                maximum: 10000
+              description: 契約別 1 日あたりの点検 API リクエスト回数上限値
+            X-Hakaru-Request-Total-Monthly:
+              schema:
+                type: number
+                example: 1781
+                minimum: 0
+                maximum: 300000
+              description: 契約別当月点検 API リクエスト回数
+            X-Hakaru-Request-Total-Daily:
+              schema:
+                type: number
+                example: 156
+                minimum: 0
+                maximum: 10000
+              description: 契約別当日点検 API リクエスト回数
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  例1:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: '{リソース ID}'
+                        measured_code: OK
+                        value: '1000'
+                        measured_at: '2019-10-04T09:22:43.917Z'
+                properties:
+                  result:
+                    type: object
+                    description: レスポンスの結果オブジェクト
+                    required:
+                      - error_code
+                      - msg
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        example: OK
+                        description: エラーコード
+                        default: OK
+                      msg:
+                        type: string
+                        minLength: 0
+                        description: エラーメッセージ
+                  api_res:
+                    type: object
+                    description: レスポンスデータ
+                    required:
+                      - resource
+                    properties:
+                      resource:
+                        type: object
+                        description: リソースデータ
+                        required:
+                          - id
+                          - value
+                          - measured_code
+                          - measured_at
+                        properties:
+                          id:
+                            type: string
+                            description: hakaru.ai システムにおけるリソースのID
+                            example: 61162e249bfd75093f4d82c9
+                            pattern: '^[a-z0-9]{24}$'
+                            minLength: 24
+                            maxLength: 24
+                          value:
+                            type: string
+                            description: 対象メーターの解析値
+                            example: '170.03'
+                            minLength: 0
+                          measured_code:
+                            type: string
+                            minLength: 1
+                            description: 解析コード
+                            example: OK
+                            default: OK
+                          measured_at:
+                            type: string
+                            minLength: 1
+                            description: 点検日時（ISO 8601 形式）
+                            example: '2019-10-04T09:22:43.917Z'
+                            format: date-time
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 成功:
+                  value:
+                    result:
+                      error_code: OK
+                      msg: ''
+                    api_res:
+                      resource:
+                        id: 61162e249bfd75093f4d82c9
+                        measured_code: OK
+                        value: '170.03'
+                        measured_at: '2019-10-04T09:22:43.917Z'
+                resource が無い場合:
+                  value:
+                    result:
+                      error_code: ANA0007
+                      msg: Not found resource
+                    api_res: {}
+                resourceの値が既に確定されている場合:
+                  value:
+                    result:
+                      error_code: ANA0008
+                      msg: Invalid resource status
+                    api_res: {}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: ANA0001
+                      msg:
+                        type: string
+                        minLength: 1
+                        description: エラーメッセージ
+                        example: Not found QR
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/アクセストークン失効:
+                  value:
+                    result:
+                      error_code: UAC0002
+                      msg: access_token has expired
+                    api_res: {}
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+                properties:
+                  result:
+                    type: object
+                    required:
+                      - error_code
+                      - msg
+                    description: レスポンスの結果オブジェクト
+                    properties:
+                      error_code:
+                        type: string
+                        minLength: 1
+                        description: エラーコード
+                        example: PUB0003
+                      msg:
+                        type: string
+                        minLength: 1
+                        example: Your request count has reached the max limit.
+                        description: エラーメッセージ
+                  api_res:
+                    type: object
+                required:
+                  - result
+                  - api_res
+              examples:
+                例1 失敗/リクエスト回数（または間隔）制限エラー:
+                  value:
+                    result:
+                      error_code: PUB0003
+                      msg: Your request count has reached the max limit.
+                    api_res: {}
+      operationId: post-v1.1-resources-determine
+      security:
+        - hakaru_bearer_auth: []
+      description: |-
+        ## 点検値確定API
+        Web台帳に表示する点検値を確定させるAPI
+
+        点検 API（QRコードあり）を使用し点検した際に取得したresourceのidを指定し、台帳に表示させたい値を確定させる
+
+        一度確定した点検値はこのAPIで再度変更は不可なためWeb台帳から修正してください。
+      parameters:
+        - schema:
+            type: string
+            minLength: 0
+            maxLength: 128
+            example: device001-000289
+            pattern: '^[_\-@\+\.0-9a-zA-z]*$'
+          in: header
+          name: X-Hakaru-Request-Id
+          description: ユーザーがリクエストを一意に特定するための任意の文字列. 半角英数大小文字および _-@+. の記号を利用でき、0 文字（空文字列）から最大 128 文字まで指定可能. セットされた文字列はレスポンスヘッダの X-Hakaru-Request-Id パラメーターにそのまま返される
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                example-1:
+                  resource_id: '{{resource_id_u}}'
+                  value: '12.34'
+              properties:
+                resource_id:
+                  type: string
+                  minLength: 1
+                  description: 点検APIで取得したresourceのid
+                  example: 6620d0b70732e81395f4fad1
+                value:
+                  type: string
+                  minLength: 1
+                  description: |-
+                    -9999999999.99999 ~ 9999999999.99999範囲値の文字列
+                    整数部10桁, 小数部5桁まで
+                  maxLength: 17
+                  example: '12.34'
+              required:
+                - resource_id
+                - value
+            examples:
+              例1:
+                value:
+                  resource_id: 6620d0b70732e81395f4fad1
+                  value: '12.34'
+        description: ''
+      tags:
+        - inspect_api
+    parameters: []
   /v1/sheets/count:
     get:
       summary: Get the number of web ledgers

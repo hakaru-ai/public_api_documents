@@ -226,8 +226,20 @@ Performs user authentication.
 - `GET` /v2/oauth2/verify_token - [Access token verification API](https://developer.hakaru.ai/#operation/get-v2-oauth2-verify_token)
 
 ## Inspection API
-
+### Inspection API endpoint
 Analyzes the image of the inspection meter and returns a numerical value.
+The inspection API has a "QR code specification" endpoint that reads numerical values based on meter setting information registered in the ledger of the hakaru.ai service, and a "meter type specification" endpoint that reads meter images by specifying meter types.
+
+- `POST` /v1.1/resources/images - [Inspection API (QR code specification)](https://developer.hakaru.ai/#operation/post-v1.1-resources-images)
+- `POST` /v1.1/resources/images/meter_type/{meter_type} - [Inspection API (meter type specification)](https://developer.hakaru.ai/#operation/post-v1.1-resources-images- meter_type-meter_type)
+
+### Displaying values in the ledger
+When using the QR code specified API, for API requests where the displayed,multi parameter is true, use the value confirmation API below to confirm the information to be recorded and displayed on the hakaru.ai ledger.
+
+- `POST` /v1.1/resources/determine - [Value determination API](https://developer.hakaru.ai/#operation/post-v1.1-resources-determine)
+
+
+*When providing v1.1 version, the following v1 version endpoints will be deprecated.
 
 - `POST` `/v1/resources/images` - [Inspection API (QR code available)](https://developer.hakaru.ai/#operation/post-v1-resources-images)
 - `POST` /v1/resources/images/meter_type/{meter_type} - [Inspection API (QR code not required, meter type specified)](https://developer.hakaru.ai/#operation/post-v1-resources-images-meter_type-meter_type)
@@ -364,6 +376,8 @@ Returns the web ledger, inspection meter information, and inspection values alre
 | ANA0004     | The meter type is incorrect |
 | ANA0005     | The server is suspended |
 | ANA0006     | There is a problem with the inspection item settings. Please edit from the web screen. |
+| ANA0007     | No inspection value exists |
+| ANA0008     | The inspection value is not one that can be determined |
 
 
 

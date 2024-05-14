@@ -228,8 +228,21 @@ hakaru.ai 公開 API は OAuth2 認可コードフローを利用し、次の手
 - `GET` /v2/oauth2/verify_token - [アクセストークン検証 API](https://developer.hakaru.ai/#operation/get-v2-oauth2-verify_token)
 
 ## 点検 API
-
+### 点検APIのエンドポイント
 点検メーターの撮影画像を解析し、数値を返します。
+点検APIは、hakaru.aiサービスの台帳に登録されたメーターの設定情報を基に数値を読み取る「QRコード指定」のエンドポイントと、
+メータータイプを指定してメーター画像を読み取る「メータータイプ指定」のエンドポイントがあります。
+
+- `POST` /v1.1/resources/images - [点検 API（QRコード指定）](https://developer.hakaru.ai/#operation/post-v1.1-resources-images)
+- `POST` /v1.1/resources/images/meter_type/{meter_type} - [点検 API（メータータイプ指定）](https://developer.hakaru.ai/#operation/post-v1.1-resources-images-meter_type-meter_type)
+
+### 台帳への値の表示
+QRコード指定のAPIを利用した際、displayed,multiのパラメーターがtrueの状態のAPIリクエストに対し、下記の値確定APIを利用してhakaru.aiの台帳に記録・表示する情報を確定させます。
+
+- `POST` /v1.1/resources/determine - [値確定API](https://developer.hakaru.ai/#operation/post-v1.1-resources-determine)
+
+
+※v1.1バージョンの提供に際し、下記v1バージョンのエンドポイントを非推奨といたします。
 
 - `POST` /v1/resources/images - [点検 API（QRコードあり）](https://developer.hakaru.ai/#operation/post-v1-resources-images)
 - `POST` /v1/resources/images/meter_type/{meter_type} - [点検 API（QRコード不要・メータータイプ指定）](https://developer.hakaru.ai/#operation/post-v1-resources-images-meter_type-meter_type)
@@ -364,6 +377,8 @@ hakaru.ai システムに登録済みの Web 台帳、点検メーター情報�
 | ANA0004     | メータータイプが不正です |
 | ANA0005     | サーバーが停止しています |
 | ANA0006     | 点検項目の設定に不備があります。Web画面から編集行ってください。 |
+| ANA0007     | 点検値が存在しません |
+| ANA0008     | 値確定ができる点検値ではありません |
 
 
 

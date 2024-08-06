@@ -274,10 +274,11 @@ Returns the web ledger, inspection meter information, and inspection values alre
 ### Meter type <a href="https://www.hakaru.ai/support/meter-type.html">> Illustration or View in figure</a>
 
 | Name | Meter type | Inspection API: QR | Inspection API: Meter type | Ledger API | Remarks |
-|---|---|---|---|---|---|
+|:----------|:-----------|:-------------------:|:----------------------:|:-----------:|:-----------|
 | Analog / Round | MET0010 | ✓ | ✓ | ✓ |  |
 | Analog / Round (Custom setting) | MET0001 | ✓ |  | ✓ |  |
 | Analog / Rectangular (Voltage, Current) | MET0004 | ✓ | ✓ | ✓ |  |
+| Analog / Rectangular (Voltage, Current) (Custom setting) | MET0011 | ✓ |  | ✓ | |
 | Analog / Horizontal scale | MET0007 | ✓ |  | ✓ |  |
 | Digital / 7-seg | MET0005 | ✓ | ✓ | ✓ |  |
 | Digital / Other than 7-seg | MET0009 | ✓ | ✓ | ✓ |  |
